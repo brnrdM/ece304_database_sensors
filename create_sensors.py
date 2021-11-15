@@ -1,0 +1,31 @@
+#Run in CMD
+from database import db, Sensor, Post_BME, Post_DHT, Post_TCS
+db.create_all()
+
+s1=Sensor(name='RB_DHT', location='Bossone 612')
+s2=Sensor(name='RB_TCS', location='Bossone CLR')
+s3=Sensor(name='RB_BME', location='Bossone LAB')
+s4=Sensor(name='BM_DHT', location='Home 612')
+s5=Sensor(name='BM_TCS', location='Home CLR')
+s6=Sensor(name='BM_BME', location='Home LAB')
+s7=Sensor(name='AP_DHT', location='Bedroom 612')
+s8=Sensor(name='AP_TCS', location='Bedroom CLR')
+s9=Sensor(name='AP_BME', location='Bedroom LAB')
+s10=Sensor(name='JC_DHT', location='Kitchen 612')
+s11=Sensor(name='JC_TCS', location='Kitchen CLR')
+s12=Sensor(name='JC_BME', location='Kitchen LAB')
+
+db.session.add(s1)
+db.session.add(s2)
+db.session.add(s3)
+db.session.add(s4)
+db.session.add(s5)
+db.session.add(s6)
+db.session.add(s7)
+db.session.add(s8)
+db.session.add(s9)
+db.session.add(s10)
+db.session.add(s11)
+db.session.add(s12)
+
+db.session.commit()
