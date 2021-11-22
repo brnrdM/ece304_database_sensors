@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>BME Sensor Data</title>
+</head>
+<style> html { font-family: Helvetica; display: inline-block; margin: 0px auto; text-align: center}
+title {margin-top: 100px;} 
+body {margin-top: 50px; } 
+.teetle {
+    margin: auto;
+    text-align: center;
+    width: 50%;
+    background: light rgb(24, 24, 24);
+    border: 3px solid black;
+    padding: 10px;
+}
+.center {margin: auto;text-align: center;width: 50%;border: 3px solid black;padding: 10px;}
+table, th, td {
+  width: 50%;
+  border: 1px solid black;
+  font-size: 12px
+}
+h1 {color: #424242d2; margin: 20px auto 30px; padding: 10px;} 
+h3 {color: #444444; margin-bottom: 10px;} 
+p {font-size: 14px; color: #888; margin-bottom: 10px;} 
+</style>
+
+<body>
+    <div class="teetle">
+        <h1>BME</h1>
+    </div>
+    <div class="center">
+        <p> <b>Sensor ID:</b> {{sv.id_bme}} </p>
+        <p> <b>Location:</b> {{sv.location_bme}} </p>
+        <p> <b>Temperature:</b> {{sv.temperature}} C</p>
+        <p> <b>Pressure:</b> {{sv.pressure}} hPa</p>
+        <p> <b>Altitude:</b> {{sv.altitude}} m</p>
+        <p> <b>Humidity:</b> {{sv.humidity}} %</p>
+    </div>
+    <div style="overflow-x:auto;"  class="center">
+        <table class="center">
+        {{table_string | safe}}
+        </table>
+    </div>
+    <br>
+    <a href="/tcs_x?rows=10">TCS Last X</a>
+    <br>
+    <a href="/bme">BME</a>
+    <br>
+    <a href="/tcs">TCS</a>
+    <br>
+    <a href="/">Home</a>
+</body>
+</html>

@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>LED and Climate Information</title>
+</head>
+<style> html { font-family: Helvetica; display: inline-block; margin: 0px auto; text-align: center}
+title {margin-top: 100px;} 
+body {margin-top: 50px; } 
+.teetle {
+    margin: auto;
+    text-align: center;
+    width: 50%;
+    background: light rgb(24, 24, 24);
+    border: 3px solid black;
+    padding: 10px;
+}
+.center {margin: auto;text-align: center;width: 50%;border: 3px solid black;padding: 10px;}
+h1 {color: #424242d2; margin: 20px auto 30px; padding: 10px;} 
+h3 {color: #444444; margin-bottom: 10px;} 
+p {font-size: 14px; color: #888; margin-bottom: 10px;} 
+</style>
+
+<body>
+    <div class="teetle">
+        <h1> ESP32 Sensor Readings</h1>
+    </div>
+    <div class="center">
+        <h3> DHT11 </h3>
+        <p> <b>Sensor ID:</b> {{iv.id}} </p>
+        <p> <b>Location:</b> {{iv.location_dht}} </p>
+        <p> <b>Temperature:</b> {{iv.temperature}} C</p>
+        <p> <b>Humidity:</b> {{iv.humidity}}%</p>
+    </div>
+    <div class="center">
+        <h3> TCS </h3>
+        <p> <b>Sensor ID:</b> {{sv.id_tcs}} </p>
+        <p> <b>Location:</b> {{sv.location_tcs}} </p>
+        <p> <b>Red:</b> {{sv.red}} </p>
+        <p> <b>Green:</b> {{sv.green}} </p>
+        <p> <b>Blue:</b> {{sv.blue}} </p>
+        <p> <b>Color Box:</b></p>
+        <svg width="20" height="20" xmlns="http://www.w3.org/2000/svg">
+            <title>box</title>
+            <g id="Color_Box">
+             <title>Color_Box</title>
+             <rect id="svg_1" height="20" width="20" y="0" x="0" stroke="#000" fill="rgb({{sv.red}},{{sv.green}},{{sv.blue}})"/>
+            </g>
+        </svg>
+        <p> <b>Color Temperature:</b> {{sv.clr_temp}} </p>
+        <p> <b>Lux:</b> {{sv.lux}} Lux</p>
+    </div>
+    <div class="center">
+    <h3> BME </h3>
+        <p> <b>Sensor ID:</b> {{sv.id_bme}} </p>
+        <p> <b>Location:</b> {{sv.location_bme}} </p>
+        <p> <b>Temperature:</b> {{sv.temperature}} C</p>
+        <p> <b>Pressure:</b> {{sv.pressure}} hPa</p>
+        <p> <b>Altitude:</b> {{sv.altitude}} m</p>
+        <p> <b>Humidity:</b> {{sv.humidity}} %</p>
+    </div>
+    <br>
+    <a href="/tcs_x?rows=10">TCS Last X</a>
+    <br>
+    <a href="/bme_x?rows=10">BME Last X</a>
+    <br>
+    <a href="/bme">BME</a>
+    <br>
+    <a href="/tcs">TCS</a>
+    <br>
+    <a href="/">Refresh</a>
+</body>
+</html>
