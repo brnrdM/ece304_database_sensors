@@ -10,10 +10,10 @@
 #include <WebServer.h>
 #include <Arduino_JSON.h>
 
-#define SSID_STRING "ECE-IoT"
-#define SSID_PASSWORD_STRING "Dragon123"
+#define SSID_STRING "Ripper"
+#define SSID_PASSWORD_STRING "12345678"
 
-#define CIRCUIT_ID "AP"
+#define CIRCUIT_ID "AP1"
 #define DHT_SENSOR_ID 7
 #define DHT_SENSOR_NAME "AB_DHT"
 #define DHT_SENSOR_LOCATION "Bedroom 612"

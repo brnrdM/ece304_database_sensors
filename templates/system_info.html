@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>System Information</title>
+</head>
+<style> h1 {text-align: center;}</style>
+<style> p {text-align: center;}</style>
+<body>
+    <hr align="center", width="80%">
+    <h1> System Information</h1>
+    <hr align="center", width="80%">
+    <div style="text-align:center;", width="80%">
+    <form align="center", action="" method="post">
+        <label for="X">Sensor ID: </label>
+        <input type="text" id="ID" name="X_ID" value="" maxlength="3" size="2"><br><br>
+
+        <label for="Y">Amount of data needed: </label>
+        <input type="text" id="Y" name="Y_DATA" value="" maxlength="3" size="2"><br><br>
+		<input type="submit" value="Submit">
+    </form>
+	</div>
+    <hr align="center", width="80%">
+    <div align="center", width="80%">
+        {{ table_html| safe }}
+    </div>
+    
+</body>
+</html>

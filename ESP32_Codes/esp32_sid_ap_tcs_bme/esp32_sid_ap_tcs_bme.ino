@@ -15,11 +15,10 @@
 #include <WebServer.h>
 #include <Arduino_JSON.h>
 
+#define SSID_STRING "Ripper"
+#define SSID_PASSWORD_STRING "12345678"
 
-#define SSID_STRING "ECE-IoT"
-#define SSID_PASSWORD_STRING "Dragon123"
-
-#define CIRCUIT_ID "AP"
+#define CIRCUIT_ID "AP2"
 #define TCS_SENSOR_ID 8
 #define TCS_SENSOR_NAME "AP_TCS"
 #define TCS_SENSOR_LOCATION "Bedroom CLR"

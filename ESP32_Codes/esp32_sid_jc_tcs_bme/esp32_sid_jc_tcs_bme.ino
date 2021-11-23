@@ -16,15 +16,15 @@
 #include <Arduino_JSON.h>
 
 
-#define SSID_STRING "ECE-IoT"
-#define SSID_PASSWORD_STRING "Dragon123"
+#define SSID_STRING "Ripper"
+#define SSID_PASSWORD_STRING "12345678"
 
-#define CIRCUIT_ID "AP"
-#define TCS_SENSOR_ID 8
-#define TCS_SENSOR_NAME "AP_TCS"
+#define CIRCUIT_ID "JC2"
+#define TCS_SENSOR_ID 11
+#define TCS_SENSOR_NAME "JC_TCS"
 #define TCS_SENSOR_LOCATION "Bedroom CLR"
-#define BME_SENSOR_ID 9
-#define BME_SENSOR_NAME "AP_BME"
+#define BME_SENSOR_ID 12
+#define BME_SENSOR_NAME "JC_BME"
 #define BME_SENSOR_LOCATION "Bedroom LAB"
 
 // BME definitions
@@ -50,9 +50,9 @@ unsigned long delayTime;
 Adafruit_BME280 bme; // I2C
 
 // Pick analog outputs, for the ESP32, it is available only on GPIO 0-15
-const int red_LED_pin=13;
-const int green_LED_pin=14;
-const int blue_LED_pin=15;
+const int red_LED_pin=0;
+const int green_LED_pin=4;
+const int blue_LED_pin=16;
 const int red_led_channel = 1;
 const int green_led_channel = 2;
 const int blue_led_channel = 3;
@@ -80,7 +80,7 @@ const char* ssid = SSID_STRING;  // Enter SSID here
 const char* password = SSID_PASSWORD_STRING;  //Enter Password here
 
 //Your Domain name with URL path or IP address with path
-const char* serverName = "http://192.168.0.4:5000/inlab";
+const char* serverName = "http://192.168.137.1:5000/inlab";
 
 // the following variables are unsigned longs because the time, measured in
 // milliseconds, will quickly become a bigger number than can be stored in an int.

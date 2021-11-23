@@ -10,12 +10,12 @@
 #include <WebServer.h>
 #include <Arduino_JSON.h>
 
-#define SSID_STRING "ECE-IoT"
-#define SSID_PASSWORD_STRING "Dragon123"
+#define SSID_STRING "Ripper"
+#define SSID_PASSWORD_STRING "12345678"
 
-#define CIRCUIT_ID "AP"
-#define DHT_SENSOR_ID 7
-#define DHT_SENSOR_NAME "AB_DHT"
+#define CIRCUIT_ID "RB1"
+#define DHT_SENSOR_ID 1
+#define DHT_SENSOR_NAME "RB_DHT"
 #define DHT_SENSOR_LOCATION "Bedroom 612"
 
 // Define constants
@@ -34,7 +34,7 @@ const char* ssid = SSID_STRING;  // Enter SSID here
 const char* password = SSID_PASSWORD_STRING;  //Enter Password here
 
 //Your Domain name with URL path or IP address with path
-const char* serverName = "http://192.168.0.4:5000/dht11";
+const char* serverName = "http://192.168.137.1:5000/dht11";
 
 // the following variables are unsigned longs because the time, measured in
 // milliseconds, will quickly become a bigger number than can be stored in an int.

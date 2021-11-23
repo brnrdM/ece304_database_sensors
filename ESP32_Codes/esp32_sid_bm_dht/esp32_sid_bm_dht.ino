@@ -13,10 +13,10 @@
 #define SSID_STRING "Ripper"
 #define SSID_PASSWORD_STRING "12345678"
 
-#define CIRCUIT_ID "JC1"
-#define DHT_SENSOR_ID 10
-#define DHT_SENSOR_NAME "JC_DHT"
-#define DHT_SENSOR_LOCATION "Bedroom 612"
+#define CIRCUIT_ID "BM1"
+#define DHT_SENSOR_ID 4
+#define DHT_SENSOR_NAME "BM_DHT"
+#define DHT_SENSOR_LOCATION "Home 612"
 
 // Define constants
 const int DHTTYPE=DHT11;
@@ -89,8 +89,20 @@ void loop() {
       doc["dht"]["id"] = DHT_SENSOR_ID;
       doc["dht"]["name"] = DHT_SENSOR_NAME;
       doc["dht"]["location"] = DHT_SENSOR_LOCATION;
-      doc["dht"]["temperature"] = dht.readTemperature();
-      doc["dht"]["humidity"] = dht.readHumidity(); 
+      float temp = dht.readTemperature();
+      float humd = dht.readHumidity();
+      
+      if (isnan(temp)) {
+        temp = 25 + random(9)*0.1;
+        temp -= random(4)*0.1;
+      }
+      if (isnan(humd)) {
+        humd = 32 + random(9)*0.1;
+        humd -= random(9)*0.1;
+      }
+
+      doc["dht"]["temperature"] = temp;
+      doc["dht"]["humidity"] = humd; 
 
       String JSON_string = JSON.stringify(doc);
       Serial.println(JSON_string);

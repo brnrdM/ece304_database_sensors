@@ -1,31 +1,49 @@
 from flask import Flask, request, render_template
+import requests
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 import json
 from dataclasses import dataclass
+import pandas as pd
+from pandas.io.formats.style import Styler
 
 @dataclass
 class Sensor_Values_inClass:
     id: str
+    name: str
     location_dht: str
     temperature: float
     humidity: float
 
 @dataclass
 class Sensor_Values_inLab:
-    id_tcs: str
+    name_tcs: str
+    id_tcs: int
     location_tcs: str
     red: float
     green: float
     blue: float
     clr_temp: float
     lux: float
-    id_bme: str
+    name_bme: str
+    id_bme: int
     location_bme: str
     temperature: float
     pressure: float
     altitude: float 
     humidity: float
+
+dic_circuits = {}
+
+# class Circuit():
+#     def __init__(self, cid, name, ip="0.0.0.0"):
+#         self.cid = cid
+#         self.name = name
+#         self.ip = ip
+#     def update_ip(self,new_ip):
+#         self.ip = new_ip
+#     def get_ip(self):
+#         return "http://" + self.ip
 
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = 'sqlite:///test_database.db'
@@ -89,14 +107,18 @@ def dht11_page():
     if request.method == 'POST':
         a = request.get_data().decode('utf-8')
         data = json.loads(a)
+        
+        dic_circuits[data['cid']] = request.remote_addr
+        
         iv = Sensor_Values_inClass(
-            data['id'],
-            data['Location'],
-            data['Temperature'],
-            data['Humidity'],
+            data['dht']['id'],
+            data['dht']['name'],
+            data['dht']['location'],
+            data['dht']['temperature'],
+            data['dht']['humidity'],
         )
 
-        sensor_found = Sensor.query.filter_by(name=iv.id).first()
+        sensor_found = Sensor.query.filter_by(name=iv.name).first()
         post_author = Sensor.query.get(sensor_found.id)
         post_made_dht = Post_DHT(
             temperature=iv.temperature, 
@@ -114,8 +136,12 @@ def inlab_page():
     if request.method == 'POST':
         a = request.get_data().decode('utf-8')
         r2_data = json.loads(a)
-        
+
+        dic_circuits[r2_data['cid']] = request.remote_addr
+        print(dic_circuits)
+
         sv = Sensor_Values_inLab(
+            r2_data['tcs']['name'],
             r2_data['tcs']['id'],
             r2_data['tcs']['location'],
             round(r2_data['tcs']['red'],2),
@@ -123,6 +149,7 @@ def inlab_page():
             round(r2_data['tcs']['blue'],2),
             round(r2_data['tcs']['clr_temp'],2),
             round(r2_data['tcs']['lux'],2),
+            r2_data['bme']['name'],
             r2_data['bme']['id'],
             r2_data['bme']['location'],
             round(r2_data['bme']['temperature'],2),
@@ -131,7 +158,7 @@ def inlab_page():
             round(r2_data['bme']['humidity'],2),
         )
 
-        sensor_found = Sensor.query.filter_by(name=sv.id_tcs).first()
+        sensor_found = Sensor.query.filter_by(name=sv.name_bme).first()
         post_author = Sensor.query.get(sensor_found.id)
         post_made_bme = Post_BME(
             temperature=sv.temperature,
@@ -142,7 +169,7 @@ def inlab_page():
             date_posted=datetime.now()
         )
 
-        sensor_found = Sensor.query.filter_by(name=sv.id_bme).first()
+        sensor_found = Sensor.query.filter_by(name=sv.name_tcs).first()
         post_author = Sensor.query.get(sensor_found.id)
         post_made_tcs = Post_TCS(
             red=sv.red,
@@ -160,258 +187,110 @@ def inlab_page():
     # if method get, return html
     return "Success"
 
-@app.route('/')
-def main_page():
-    latest_dht_records = \
-        db.session.\
-        query(Post_DHT).\
-        order_by(db.desc('date_posted')).\
-        limit(1).\
-        all()
-
-    latest_bme_records = \
-        db.session.\
-        query(Post_BME).\
-        order_by(db.desc('date_posted')).\
-        limit(1).\
-        all()
-
-    latest_tcs_records = \
-        db.session.\
-        query(Post_TCS).\
-        order_by(db.desc('date_posted')).\
-        limit(1).\
-        all()
-
-    sensor_entries = \
-        db.session.\
-        query(Sensor).\
-        order_by(db.asc('id')).\
-        all()
-    
-    dht_sensor = latest_dht_records[0]
-    bme_sensor = latest_bme_records[0]
-    tcs_sensor = latest_tcs_records[0]
-
-    iv = Sensor_Values_inClass(
-        dht_sensor.id,
-        sensor_entries[0].location,
-        dht_sensor.temperature,
-        dht_sensor.humidity
-    )
-
-    sv = Sensor_Values_inLab(
-        tcs_sensor.id,
-        sensor_entries[1].location,
-        tcs_sensor.red,
-        tcs_sensor.green,
-        tcs_sensor.blue,
-        tcs_sensor.clr_temp,
-        tcs_sensor.lux,
-        bme_sensor.id,
-        sensor_entries[2].location,
-        bme_sensor.temperature,
-        bme_sensor.pressure,
-        bme_sensor.altitude,
-        bme_sensor.humidity
-    )
 
 
-    return render_template('Climate_Information.html', iv=iv, sv=sv)
+@app.route('/led', methods=["POST", "GET"])
+def setLED():
+    if request.method == "POST":
+        circuit = None
+        if (request.form.get("circuits") is None):
+            return
+        else:
+            circuit = request.form.get("circuits")
 
-@app.route('/bme')
-def get_information_bme():
-    latest_bme_records = \
-        db.session.\
-        query(Post_BME).\
-        order_by(db.desc('date_posted')).\
-        limit(1).\
-        all()
+        if (circuit[2] == "1"):
+            if request.form.get("c1_redled"):
+                c1_red_led_val = 1
+            else:
+                c1_red_led_val = 0
 
-    sensor_entries = \
-        db.session.\
-        query(Sensor).\
-        order_by(db.asc('id')).\
-        all()
+            if not (request.form["c1_blueled"]):
+                c1_blue_led_val = 0
+            else:
+                c1_blue_led_val = int(request.form["c1_blueled"])
 
-    bme_sensor = latest_bme_records[0]
+            data1 = json.dumps({
+                    'redled': c1_red_led_val, 
+                    'blueled': c1_blue_led_val
+            })
+            try:
+                r1 = requests.post("http://" + dic_circuits[circuit] + '/led_set_post', data=data1)
+            except KeyError:
+                print("Key:",circuit,"does not exist.")
+        elif (circuit[2] == "2"):
+            if not (request.form["c2_redled"]):
+                c2_red_led_val = 0
+            else:
+                c2_red_led_val = int(request.form["c2_redled"])
 
-    sv = Sensor_Values_inLab(
-        None,
-        None,
-        None,
-        None,
-        None,
-        None,
-        None,
-        bme_sensor.id,
-        sensor_entries[2].location,
-        bme_sensor.temperature,
-        bme_sensor.pressure,
-        bme_sensor.altitude,
-        bme_sensor.humidity
-    )
+            if not (request.form["c2_greenled"]):
+                c2_green_led_val = 0
+            else:
+                c2_green_led_val = int(request.form["c2_greenled"])
 
-    return render_template('bme.html', sv=sv)
+            if not (request.form["c2_blueled"]):
+                c2_blue_led_val = 0
+            else:
+                c2_blue_led_val = int(request.form["c2_blueled"])
 
-
-@app.route('/tcs')
-def get_information_tcs():
-    latest_tcs_records = \
-        db.session.\
-        query(Post_TCS).\
-        order_by(db.desc('date_posted')).\
-        limit(1).\
-        all()
-
-    sensor_entries = \
-        db.session.\
-        query(Sensor).\
-        order_by(db.asc('id')).\
-        all()
-
-    tcs_sensor = latest_tcs_records[0]
-
-    sv = Sensor_Values_inLab(
-        tcs_sensor.id,
-        sensor_entries[1].location,
-        tcs_sensor.red,
-        tcs_sensor.green,
-        tcs_sensor.blue,
-        tcs_sensor.clr_temp,
-        tcs_sensor.lux,
-        None,
-        None,
-        None,
-        None,
-        None,
-        None
-    )
-
-    return render_template('tcs.html', sv=sv)
-
-# 192.168.0.4:5000/bme_x?rows=10
-@app.route('/bme_x', methods=['GET'])
-def get_information_bme_last_x():
-    rows = 0
-    if request.method == 'GET':
-        rows = request.args.get('rows')
-
-        if (not rows):
-            rows = 10
-
-        latest_bme_records = \
-            db.session.\
-            query(Post_BME).\
-            order_by(db.desc('date_posted')).\
-            limit(rows).\
-            all()
-
-        sensor_entries = \
-            db.session.\
-            query(Sensor).\
-            order_by(db.asc('id')).\
-            all()
-        
-        table_string = \
-        "<tr>"\
-        "<th>Date Time </th>"\
-        "<th>Temperature (C) </th>"\
-        "<th>Pressure (hPa) </th>"\
-        "<th>Altitude (m) </th>"\
-        "<th>Humidity (%) </th>"\
-        "</tr>"
-
-        for bme_sensor in latest_bme_records:
-            sv = Sensor_Values_inLab(
-                None,
-                None,
-                None,
-                None,
-                None,
-                None,
-                None,
-                bme_sensor.id,
-                sensor_entries[2].location,
-                bme_sensor.temperature,
-                bme_sensor.pressure,
-                bme_sensor.altitude,
-                bme_sensor.humidity
-            )
-            table_string += "<tr>"
-            table_string += f"<th>{bme_sensor.date_posted}</th>"
-            table_string += f"<th>{sv.temperature}</th>"
-            table_string += f"<th>{sv.pressure}</th>"
-            table_string += f"<th>{sv.altitude}</th>"
-            table_string += f"<th>{sv.humidity}</th>"
-            table_string += "</tr>"
-
-        return render_template('bme_x.html', sv=sv, table_string=table_string)
+            data2 = json.dumps({
+                    'redled': c2_red_led_val, 
+                    'greenled': c2_green_led_val,
+                    'blueled': c2_blue_led_val
+                })
+            
+            try:
+                r2 = requests.post("http://" + dic_circuits[circuit] + '/led_set_post', data=data2)
+            except KeyError:
+                print("Key:",circuit,"does not exist.")
+        return render_template('LED_Commander.html')
     else:
-        return "Fail"
+        return render_template('LED_Commander.html')
 
-# http://192.168.0.4:5000/tcs_x?rows=10
-@app.route('/tcs_x', methods=['GET'])
-def get_information_tcs_last_x():
-    rows = 0
-    if request.method == 'GET':
-        rows = request.args.get('rows')
+@app.route('/system_info', methods=["POST", "GET"])
+def show_latest_RGB():
+    if request.method == "POST":
+        if not (request.form["X_ID"] and request.form["Y_DATA"]):
+            return
+        else:
+            X = int(request.form["X_ID"])
+            Y = int(request.form["Y_DATA"])
+            sensor_type = X % 3 # 0 -> BME, 1 -> DHT, 2 -> TCS
 
-        if (not rows):
-            rows = 10
+            if (sensor_type == 0): # BME
+                circuit_2_data = db.session.query(Post_BME).filter(Post_BME.sensor_id == X).order_by(db.desc('date_posted')).all()
+            elif(sensor_type == 1): #DHT
+                circuit_2_data = db.session.query(Post_DHT).filter_by(sensor_id=int(X)).order_by(db.desc('date_posted')).all() 
+            else: #TCS 
+                circuit_2_data = db.session.query(Post_TCS).filter_by(sensor_id=X).order_by(db.desc('date_posted')).all()
 
-        latest_tcs_records = \
-            db.session.\
-            query(Post_TCS).\
-            order_by(db.desc('date_posted')).\
-            limit(rows).\
-            all()
+            rows=[]
+            indices=[]
 
-        sensor_entries = \
-            db.session.\
-            query(Sensor).\
-            order_by(db.asc('id')).\
-            all()
-        
-        table_string = \
-        "<tr>"\
-        "<th>Date Time </th>"\
-        "<th>Red (0-255) </th>"\
-        "<th>Green (0-255) </th>"\
-        "<th>Blue (0-255) </th>"\
-        "<th>Color Temp </th>"\
-        "<th>Lux </th>"\
-        "</tr>"
+            for i in range(Y):
+                row = circuit_2_data[i]
+                if (sensor_type == 0): # BME
+                    rows.append([row.temperature, row.pressure, row.altitude, row.humidity, row.sensor_id]) # Change the elements
+                    indices.append(row.date_posted)
+                elif(sensor_type == 1): #DHT
+                    rows.append([row.temperature, row.humidity, row.sensor_id]) # Change the elements
+                    indices.append(row.date_posted)
+                else: #TCS 
+                    rows.append([row.red, row.green, row.blue, row.clr_temp, row.lux, row.sensor_id]) # Change the elements
+                    indices.append(row.date_posted)
 
-        for tcs_sensor in latest_tcs_records:
-            sv = Sensor_Values_inLab(
-                tcs_sensor.id,
-                sensor_entries[1].location,
-                tcs_sensor.red,
-                tcs_sensor.green,
-                tcs_sensor.blue,
-                tcs_sensor.clr_temp,
-                tcs_sensor.lux,
-                None,
-                None,
-                None,
-                None,
-                None,
-                None
-            )
-            table_string += "<tr>"
-            table_string += f"<th>{tcs_sensor.date_posted}</th>"
-            table_string += f"<th>{sv.red}</th>"
-            table_string += f"<th>{sv.green}</th>"
-            table_string += f"<th>{sv.blue}</th>"
-            table_string += f"<th>{sv.clr_temp}</th>"
-            table_string += f"<th>{sv.lux}</th>"
-            table_string += "</tr>"
+            if (sensor_type == 0): # BME
+                df = pd.DataFrame(data=rows, columns=["Temperature", "Pressure", "Altitude", "Humidity","Sensor ID"], index=indices) # Fix
+            elif (sensor_type == 1): #DHT
+                df = pd.DataFrame(data=rows, columns=["Temperature", "Humidity", "Sensor ID"], index=indices) # Fix
+            else: #TCS 
+                df = pd.DataFrame(data=rows, columns=["R", "G", "B", "Color Temperature (K)", "Intensity (Lux)", "Sensor ID"], index=indices) # Fix
 
-        return render_template('tcs_x.html', sv=sv, table_string=table_string)
+            df_html = df.to_html(col_space='65px').replace('<td>', '<td align="center">')
+
+            return render_template('system_info.html', table_html=df_html) # Change name
     else:
-        return "Fail"
-
+        return render_template('system_info.html')
 
 if __name__ == '__main__':
-    app.run(debug=False, host='10.250.95.189')
+    app.run(debug=False, host='192.168.137.1')

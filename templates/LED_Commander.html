@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style> html { font-family: Helvetica; display: inline-block; margin: 0px auto; text-align: center}
+        input.largerCheckbox {
+            width: 20px;
+            height: 20px;
+		}
+
+        title {margin-top: 100px;} 
+        body {margin-top: 50px; } 
+        .teetle {
+            margin: auto;
+            text-align: center;
+            width: 50%;
+            background: light rgb(24, 24, 24);
+            border: 3px solid black;
+            padding: 10px;
+        }
+		.center {margin: auto;text-align: center;width: 50%;border: 3px solid black;padding: 10px;}
+        .center2 {margin: auto;text-align: center;width: 50%;border: 3px solid black;padding: 10px;}
+        h1 {color: #424242d2; margin: 10px auto 10px; padding: 10px;} 
+        h3 {color: #444444; margin-bottom: 20px;} 
+        p {font-size: 14px; color: #888; margin-bottom: 10px;}
+    </style>
+	<script type = "text/javascript">
+		function hideShow(selection) {
+		  var x = document.getElementById("myDIV1");
+		  var y = document.getElementById("myDIV2");
+		  var z = document.getElementById("sbmtDIV");
+		  
+		  //console.log(selection.charAt(2))
+		  
+		  if (selection.charAt(2) === "1") {
+			x.style.display = "block";
+			y.style.display = "none";
+			z.style.display = "block";
+		  } else if (selection.charAt(2) === "2") {
+			x.style.display = "none";
+			y.style.display = "block";
+			z.style.display = "block";
+		  } else {
+			x.style.display = "none";
+			y.style.display = "none";
+			z.style.display = "none";
+		  }
+		}
+		var on_ce_run;
+		function onlodfunction() {
+			if (!on_ce_run) {
+				var x = document.getElementById("myDIV1");
+				var y = document.getElementById("myDIV2");
+				var z = document.getElementById("sbmtDIV");
+				console.log("DEBUG:  	 	Ran hide all once")
+				x.style.display = "none";
+				y.style.display = "none";
+				z.style.display = "none";
+				on_ce_run = true;
+			}
+		}
+	</script>
+</head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<body onload="onlodfunction()">
+<div class="teetle">
+	<h1>LED Commander</h1>
+</div>
+<div class="center2">
+<form action="" method="post">
+	<label for="circuits">Choose a Circuit:</label>
+	<select onchange="hideShow(value);" name="circuits" id ="circuits" selected="N/A">
+		<option value="000"> N/A</option>
+		<option value="RB1"> RB1</option>
+		<option value="RB2"> RB2</option>
+		<option value="JC1"> JC1</option>
+		<option value="JC2"> JC2</option>
+		<option value="BM1"> BM1</option>
+		<option value="BM2"> BM2</option>
+		<option value="AP1"> AP1</option>
+		<option value="AP2"> AP2</option>
+	</select>
+	<div id="myDIV1">
+		<h3>Class Circuit</h3>
+		<label for="redtoggle">Red LED Toggle</label>
+		<input type="checkbox" class="largerCheckbox" id="redtoggle" name="c1_redled"><br><br>
+		<label for="blue">Blue LED Value</label>
+		<input type="text" id="blue" name="c1_blueled" value="" maxlength="3" size="2"><br><br>
+	</div>
+	<div id="myDIV2">
+    <h3>Lab Circuit</h3>
+		<label for="reed">Red LED Value</label>
+		<input type="text" id="reed" name="c2_redled" value="" maxlength="3" size="2"><br><br>
+		<label for="greeen">Green LED Value</label>
+		<input type="text" id="greeen" name="c2_greenled" value="" maxlength="3" size="2"><br><br>
+		<label for="bleu">Blue LED Value</label>
+		<input type="text" id="bleu" name="c2_blueled" value="" maxlength="3" size="2"><br><br>
+    </div>
+	<div id="center2">
+		<input id="sbmtDIV" type="submit" value="Submit">
+	</div>
+</form>
+</div>
+<br>
+</body>
+</html>

@@ -15,11 +15,10 @@
 #include <WebServer.h>
 #include <Arduino_JSON.h>
 
+#define SSID_STRING "Ripper"
+#define SSID_PASSWORD_STRING "12345678"
 
-#define SSID_STRING "ECE-IoT"
-#define SSID_PASSWORD_STRING "Dragon123"
-
-#define CIRCUIT_ID "BM"
+#define CIRCUIT_ID "BM2"
 #define TCS_SENSOR_ID 5
 #define TCS_SENSOR_NAME "BM_TCS"
 #define TCS_SENSOR_LOCATION "Home CLR"
@@ -80,7 +79,7 @@ const char* ssid = SSID_STRING;  // Enter SSID here
 const char* password = SSID_PASSWORD_STRING;  //Enter Password here
 
 //Your Domain name with URL path or IP address with path
-const char* serverName = "http://192.168.0.4:5000/inlab";
+const char* serverName = "http://192.168.137.1:5000/inlab"; 
 
 // the following variables are unsigned longs because the time, measured in
 // milliseconds, will quickly become a bigger number than can be stored in an int.
