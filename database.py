@@ -33,17 +33,12 @@ class Sensor_Values_inLab:
     altitude: float 
     humidity: float
 
-dic_circuits = {}
-
-# class Circuit():
-#     def __init__(self, cid, name, ip="0.0.0.0"):
-#         self.cid = cid
-#         self.name = name
-#         self.ip = ip
-#     def update_ip(self,new_ip):
-#         self.ip = new_ip
-#     def get_ip(self):
-#         return "http://" + self.ip
+# Dictionary of cid's
+# Key: 
+# circuit id (cid) (OWNER'S INITIALS(1 or 2)) (BM1)
+# Value: 
+# IP Address (0.0.0.0)
+dic_cid_to_ip = {}
 
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = 'sqlite:///test_database.db'
@@ -108,7 +103,7 @@ def dht11_page():
         a = request.get_data().decode('utf-8')
         data = json.loads(a)
         
-        dic_circuits[data['cid']] = request.remote_addr
+        dic_cid_to_ip[data['cid']] = request.remote_addr
         
         iv = Sensor_Values_inClass(
             data['dht']['id'],
@@ -137,8 +132,8 @@ def inlab_page():
         a = request.get_data().decode('utf-8')
         r2_data = json.loads(a)
 
-        dic_circuits[r2_data['cid']] = request.remote_addr
-        print(dic_circuits)
+        dic_cid_to_ip[r2_data['cid']] = request.remote_addr
+        print(dic_cid_to_ip)
 
         sv = Sensor_Values_inLab(
             r2_data['tcs']['name'],
@@ -192,13 +187,15 @@ def inlab_page():
 @app.route('/led', methods=["POST", "GET"])
 def setLED():
     if request.method == "POST":
-        circuit = None
+        circuit_id = None
         if (request.form.get("circuits") is None):
             return
         else:
-            circuit = request.form.get("circuits")
-
-        if (circuit[2] == "1"):
+            # retrieve selected circuit id
+            circuit_id = request.form.get("circuits")
+        
+        # In Class Circuit
+        if (circuit_id[2] == "1"):
             if request.form.get("c1_redled"):
                 c1_red_led_val = 1
             else:
@@ -214,10 +211,11 @@ def setLED():
                     'blueled': c1_blue_led_val
             })
             try:
-                r1 = requests.post("http://" + dic_circuits[circuit] + '/led_set_post', data=data1)
+                r1 = requests.post("http://" + dic_cid_to_ip[circuit_id] + '/led_set_post', data=data1)
             except KeyError:
-                print("Key:",circuit,"does not exist.")
-        elif (circuit[2] == "2"):
+                print("Key:",circuit_id,"does not exist.")
+        # In Lab Circuit
+        elif (circuit_id[2] == "2"):
             if not (request.form["c2_redled"]):
                 c2_red_led_val = 0
             else:
@@ -240,9 +238,9 @@ def setLED():
                 })
             
             try:
-                r2 = requests.post("http://" + dic_circuits[circuit] + '/led_set_post', data=data2)
+                r2 = requests.post("http://" + dic_cid_to_ip[circuit_id] + '/led_set_post', data=data2)
             except KeyError:
-                print("Key:",circuit,"does not exist.")
+                print("Key:",circuit_id,"does not exist.")
         return render_template('LED_Commander.html')
     else:
         return render_template('LED_Commander.html')
