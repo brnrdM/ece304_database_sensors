@@ -14,7 +14,6 @@ class Sensor_Values_inClass:
     location_dht: str
     temperature: float
     humidity: float
-
 @dataclass
 class Sensor_Values_inLab:
     name_tcs: str
@@ -39,6 +38,13 @@ class Sensor_Values_inLab:
 # Value: 
 # IP Address (0.0.0.0)
 dic_cid_to_ip = {}
+
+# Dictionary of cid's
+# Key: 
+# circuit id (cid) (OWNER'S INITIALS(1 or 2)) (BM1)
+# Value: 
+# List of Sensor Names
+dic_cid_to_sensor_names = {}
 
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = 'sqlite:///test_database.db'
@@ -104,6 +110,7 @@ def dht11_page():
         data = json.loads(a)
         
         dic_cid_to_ip[data['cid']] = request.remote_addr
+        dic_cid_to_sensor_names[data['cid']] = [data['dht']['name']]
         
         iv = Sensor_Values_inClass(
             data['dht']['id'],
@@ -133,6 +140,7 @@ def inlab_page():
         r2_data = json.loads(a)
 
         dic_cid_to_ip[r2_data['cid']] = request.remote_addr
+        dic_cid_to_sensor_names[r2_data['cid']] = [r2_data['tcs']['name'], r2_data['bme']['name']]
         print(dic_cid_to_ip)
 
         sv = Sensor_Values_inLab(
@@ -182,9 +190,89 @@ def inlab_page():
     # if method get, return html
     return "Success"
 
+def retrieve_latest_record(sensor_id):
+    sensor_type = sensor_id % 3 # 0 -> BME, 1 -> DHT, 2 -> TCS
+    sensor_entries = \
+        db.session.\
+        query(Sensor).\
+        order_by(db.asc('id')).\
+        all()
 
+    iv = None
+    sv = None
 
-@app.route('/led', methods=["POST", "GET"])
+    if (sensor_type == 0):
+        latest_bme_records = \
+            db.session.\
+            query(Post_BME).\
+            filter_by(sensor_id=sensor_id).\
+            order_by(db.desc('date_posted')).\
+            limit(1).\
+            all()
+        bme_sensor = latest_bme_records[0]
+        sv = Sensor_Values_inLab(
+            None, 
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            sensor_entries[sensor_id-1].name,
+            bme_sensor.id, 
+            sensor_entries[sensor_id-1].location,
+            bme_sensor.temperature,
+            bme_sensor.pressure,
+            bme_sensor.altitude,
+            bme_sensor.humidity
+        )
+    elif(sensor_type == 1):
+        latest_dht_records = \
+            db.session.\
+            query(Post_DHT).\
+            filter_by(sensor_id=sensor_id).\
+            order_by(db.desc('date_posted')).\
+            limit(1).\
+            all()
+        dht_sensor = latest_dht_records[0]
+        iv = Sensor_Values_inClass(
+            dht_sensor.id,
+            sensor_entries[sensor_id-1].name,
+            sensor_entries[sensor_id-1].location,
+            dht_sensor.temperature,
+            dht_sensor.humidity
+        )
+    else:
+        latest_tcs_records = \
+            db.session.\
+            query(Post_TCS).\
+            filter_by(sensor_id=sensor_id).\
+            order_by(db.desc('date_posted')).\
+            limit(1).\
+            all()
+        tcs_sensor = latest_tcs_records[0]
+        sv = Sensor_Values_inLab(
+            sensor_entries[sensor_id-1].name,
+            tcs_sensor.id,
+            sensor_entries[sensor_id-1].location,
+            tcs_sensor.red,
+            tcs_sensor.green,
+            tcs_sensor.blue,
+            tcs_sensor.clr_temp,
+            tcs_sensor.lux,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None
+        )
+
+    return (iv, sv)
+
+@app.route('/', methods=["POST", "GET"])
 def setLED():
     if request.method == "POST":
         circuit_id = None
@@ -240,53 +328,73 @@ def setLED():
             try:
                 r2 = requests.post("http://" + dic_cid_to_ip[circuit_id] + '/led_set_post', data=data2)
             except KeyError:
-                print("Key:",circuit_id,"does not exist.")
-        return render_template('LED_Commander.html')
+                print("Key:",circuit_id,"cid does not exist.")
+        
+        data_list = []
+        for sensor_idd in range(1,13):
+            iv,sv = retrieve_latest_record(sensor_idd)
+            if ((sensor_idd % 3) == 0):
+                data_list.append(sv)
+            elif ((sensor_idd % 3) == 1):
+                data_list.append(iv)
+            elif ((sensor_idd % 3) == 2):
+                data_list.append(sv)
+
+        return render_template('Latest_Info_LED_Commander.html', data_list=data_list)
     else:
-        return render_template('LED_Commander.html')
+        data_list = []
+        for sensor_idd in range(1,13):
+            iv,sv = retrieve_latest_record(sensor_idd)
+            if ((sensor_idd % 3) == 0):
+                data_list.append(sv)
+            elif ((sensor_idd % 3) == 1):
+                data_list.append(iv)
+            elif ((sensor_idd % 3) == 2):
+                data_list.append(sv)
+
+        return render_template('Latest_Info_LED_Commander.html', data_list=data_list)
 
 @app.route('/system_info', methods=["POST", "GET"])
 def show_latest_RGB():
     if request.method == "POST":
         if not (request.form["X_ID"] and request.form["Y_DATA"]):
             return
-        else:
-            X = int(request.form["X_ID"])
-            Y = int(request.form["Y_DATA"])
-            sensor_type = X % 3 # 0 -> BME, 1 -> DHT, 2 -> TCS
+        X = int(request.form["X_ID"])
+        Y = int(request.form["Y_DATA"])
+        sensor_type = X % 3 # 0 -> BME, 1 -> DHT, 2 -> TCS
 
+        if (sensor_type == 0): # BME
+            retrieved_data = db.session.query(Post_BME).filter(Post_BME.sensor_id == X).order_by(db.desc('date_posted')).limit(Y).all()
+        elif(sensor_type == 1): #DHT
+            retrieved_data = db.session.query(Post_DHT).filter_by(sensor_id=int(X)).order_by(db.desc('date_posted')).limit(Y).all() 
+        else: #TCS 
+            retrieved_data = db.session.query(Post_TCS).filter_by(sensor_id=X).order_by(db.desc('date_posted')).limit(Y).all()
+
+        rows=[]
+        indices=[]
+
+        for i in range(Y):
+            row = retrieved_data[i]
             if (sensor_type == 0): # BME
-                circuit_2_data = db.session.query(Post_BME).filter(Post_BME.sensor_id == X).order_by(db.desc('date_posted')).all()
+                rows.append([row.temperature, row.pressure, row.altitude, row.humidity, row.sensor_id]) # Change the elements
+                indices.append(row.date_posted)
             elif(sensor_type == 1): #DHT
-                circuit_2_data = db.session.query(Post_DHT).filter_by(sensor_id=int(X)).order_by(db.desc('date_posted')).all() 
+                rows.append([row.temperature, row.humidity, row.sensor_id]) # Change the elements
+                indices.append(row.date_posted)
             else: #TCS 
-                circuit_2_data = db.session.query(Post_TCS).filter_by(sensor_id=X).order_by(db.desc('date_posted')).all()
+                rows.append([row.red, row.green, row.blue, row.clr_temp, row.lux, row.sensor_id]) # Change the elements
+                indices.append(row.date_posted)
 
-            rows=[]
-            indices=[]
+        if (sensor_type == 0): # BME
+            df = pd.DataFrame(data=rows, columns=["Temperature", "Pressure", "Altitude", "Humidity","Sensor ID"], index=indices) # Fix
+        elif (sensor_type == 1): #DHT
+            df = pd.DataFrame(data=rows, columns=["Temperature", "Humidity", "Sensor ID"], index=indices) # Fix
+        else: #TCS 
+            df = pd.DataFrame(data=rows, columns=["R", "G", "B", "Color Temperature (K)", "Intensity (Lux)", "Sensor ID"], index=indices) # Fix
 
-            for i in range(Y):
-                row = circuit_2_data[i]
-                if (sensor_type == 0): # BME
-                    rows.append([row.temperature, row.pressure, row.altitude, row.humidity, row.sensor_id]) # Change the elements
-                    indices.append(row.date_posted)
-                elif(sensor_type == 1): #DHT
-                    rows.append([row.temperature, row.humidity, row.sensor_id]) # Change the elements
-                    indices.append(row.date_posted)
-                else: #TCS 
-                    rows.append([row.red, row.green, row.blue, row.clr_temp, row.lux, row.sensor_id]) # Change the elements
-                    indices.append(row.date_posted)
+        df_html = df.to_html(col_space='65px').replace('<td>', '<td align="center">')
 
-            if (sensor_type == 0): # BME
-                df = pd.DataFrame(data=rows, columns=["Temperature", "Pressure", "Altitude", "Humidity","Sensor ID"], index=indices) # Fix
-            elif (sensor_type == 1): #DHT
-                df = pd.DataFrame(data=rows, columns=["Temperature", "Humidity", "Sensor ID"], index=indices) # Fix
-            else: #TCS 
-                df = pd.DataFrame(data=rows, columns=["R", "G", "B", "Color Temperature (K)", "Intensity (Lux)", "Sensor ID"], index=indices) # Fix
-
-            df_html = df.to_html(col_space='65px').replace('<td>', '<td align="center">')
-
-            return render_template('system_info.html', table_html=df_html) # Change name
+        return render_template('system_info.html', table_html=df_html) # Change name
     else:
         return render_template('system_info.html')
 

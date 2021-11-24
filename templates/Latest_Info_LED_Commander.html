@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<style> html { font-family: Helvetica; display: inline-block; margin: 0px auto; text-align: center}
+        input.largerCheckbox {
+            width: 20px;
+            height: 20px;
+		}
+
+        title {margin-top: 100px;}
+        body {margin-top: 50px; }
+        .teetle {
+            margin: auto;
+            text-align: center;
+            width: 50%;
+            background: light rgb(24, 24, 24);
+            border: 3px solid black;
+            padding: 10px;
+        }
+		.center {margin: auto;text-align: center;width: 50%;border: 3px solid black;padding: 10px;}
+        .center2 {margin: auto;text-align: center;width: 50%;border: 3px solid black;padding: 10px;}
+        h1 {color: #424242d2; margin: 10px auto 10px; padding: 10px;}
+        h3 {color: #444444; margin-bottom: 20px;}
+        p {font-size: 14px; color: #888; margin-bottom: 10px;}
+        .column {
+  float: left;
+  width: 33.33%;
+}
+
+/* Clear floats after the columns */
+.row:after {
+  content: "";
+  display: table;
+  clear: both;
+}
+    </style>
+	<script type = "text/javascript">
+		function hideShow(selection) {
+		  var x = document.getElementById("myDIV1");
+		  var y = document.getElementById("myDIV2");
+		  var z = document.getElementById("sbmtDIV");
+
+		  //console.log(selection.charAt(2))
+
+		  if (selection.charAt(2) === "1") {
+			x.style.display = "block";
+			y.style.display = "none";
+			z.style.display = "block";
+		  } else if (selection.charAt(2) === "2") {
+			x.style.display = "none";
+			y.style.display = "block";
+			z.style.display = "block";
+		  } else {
+			x.style.display = "none";
+			y.style.display = "none";
+			z.style.display = "none";
+		  }
+		}
+		var on_ce_run;
+		function onlodfunction() {
+			if (!on_ce_run) {
+				var x = document.getElementById("myDIV1");
+				var y = document.getElementById("myDIV2");
+				var z = document.getElementById("sbmtDIV");
+				console.log("DEBUG:  	 	Ran hide all once")
+				x.style.display = "none";
+				y.style.display = "none";
+				z.style.display = "none";
+				on_ce_run = true;
+			}
+		}
+	</script>
+</head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<body onload="onlodfunction()">
+<div class="teetle">
+	<h1>LED Commander</h1>
+</div>
+<div class="center2">
+	<form action="" method="post">
+		<label for="circuits">Choose a Circuit:</label>
+		<select onchange="hideShow(value);" name="circuits" id ="circuits" selected="N/A">
+			<option value="000"> N/A</option>
+			<option value="RB1"> RB1</option>
+			<option value="RB2"> RB2</option>
+			<option value="JC1"> JC1</option>
+			<option value="JC2"> JC2</option>
+			<option value="BM1"> BM1</option>
+			<option value="BM2"> BM2</option>
+			<option value="AP1"> AP1</option>
+			<option value="AP2"> AP2</option>
+		</select>
+		<div id="myDIV1">
+			<h3>Class Circuit</h3>
+			<label for="redtoggle">Red LED Toggle</label>
+			<input type="checkbox" class="largerCheckbox" id="redtoggle" name="c1_redled"><br><br>
+			<label for="blue">Blue LED Value</label>
+			<input type="text" id="blue" name="c1_blueled" value="" maxlength="3" size="2"><br><br>
+		</div>
+		<div id="myDIV2">
+			<h3>Lab Circuit</h3>
+			<label for="reed">Red LED Value</label>
+			<input type="text" id="reed" name="c2_redled" value="" maxlength="3" size="2"><br><br>
+			<label for="greeen">Green LED Value</label>
+			<input type="text" id="greeen" name="c2_greenled" value="" maxlength="3" size="2"><br><br>
+			<label for="bleu">Blue LED Value</label>
+			<input type="text" id="bleu" name="c2_blueled" value="" maxlength="3" size="2"><br><br>
+		</div>
+		<div id="center2">
+			<input id="sbmtDIV" type="submit" value="Submit">
+		</div>
+	</form>
+</div>
+<div class="teetle">
+    <h1> ESP32 Sensor Readings</h1>
+</div>
+<div class="teetle">
+    <div class="row">
+        <div class="column">
+            <h3> First DHT11 </h3>
+            <p> <b>Entry ID:</b> {{data_list[0].id}} </p>
+            <p> <b>Location:</b> {{data_list[0].location_dht}} </p>
+            <p> <b>Temperature:</b> {{data_list[0].temperature}} C</p>
+            <p> <b>Humidity:</b> {{data_list[0].humidity}}%</p>
+        </div>
+
+        <div class="column">
+            <h3> First TCS </h3>
+            <p> <b>Entry ID:</b> {{data_list[1].id_tcs}} </p>
+            <p> <b>Location:</b> {{data_list[1].location_tcs}} </p>
+            <p> <b>Red:</b> {{data_list[1].red}} </p>
+            <p> <b>Green:</b> {{data_list[1].green}} </p>
+            <p> <b>Blue:</b> {{data_list[1].blue}} </p>
+            <p> <b>Color Box:</b></p>
+            <svg width="20" height="20" xmlns="http://www.w3.org/2000/svg">
+                <title>box</title>
+                <g id="Color_Box">
+                    <title>Color_Box</title>
+                    <rect id="svg_1" height="20" width="20" y="0" x="0" stroke="#000" fill="rgb({{data_list[1].red}},{{data_list[1].green}},{{data_list[1].blue}})"/>
+                </g>
+            </svg>
+            <p> <b>Color Temperature:</b> {{data_list[1].clr_temp}} </p>
+            <p> <b>Lux:</b> {{data_list[1].lux}} Lux</p>
+        </div>
+        <div class="column">
+            <h3> First BME </h3>
+            <p> <b>Entry ID:</b> {{data_list[2].id_bme}} </p>
+            <p> <b>Location:</b> {{data_list[2].location_bme}} </p>
+            <p> <b>Temperature:</b> {{data_list[2].temperature}} C</p>
+            <p> <b>Pressure:</b> {{data_list[2].pressure}} hPa</p>
+            <p> <b>Altitude:</b> {{data_list[2].altitude}} m</p>
+            <p> <b>Humidity:</b> {{data_list[2].humidity}} %</p>
+        </div>
+    </div>
+    <hr noshade>
+    <div class="row">
+        <div class="column">
+            <h3> Second DHT11 </h3>
+            <p> <b>Entry ID:</b> {{data_list[3].id}} </p>
+            <p> <b>Location:</b> {{data_list[3].location_dht}} </p>
+            <p> <b>Temperature:</b> {{data_list[3].temperature}} C</p>
+            <p> <b>Humidity:</b> {{data_list[3].humidity}}%</p>
+        </div>
+
+        <div class="column">
+            <h3> Second TCS </h3>
+            <p> <b>Entry ID:</b> {{data_list[4].id_tcs}} </p>
+            <p> <b>Location:</b> {{data_list[4].location_tcs}} </p>
+            <p> <b>Red:</b> {{data_list[4].red}} </p>
+            <p> <b>Green:</b> {{data_list[4].green}} </p>
+            <p> <b>Blue:</b> {{data_list[4].blue}} </p>
+            <p> <b>Color Box:</b></p>
+            <svg width="20" height="20" xmlns="http://www.w3.org/2000/svg">
+                <title>box</title>
+                <g id="Color_Box">
+                    <title>Color_Box</title>
+                    <rect id="svg_1" height="20" width="20" y="0" x="0" stroke="#000" fill="rgb({{data_list[4].red}},{{data_list[4].green}},{{data_list[4].blue}})"/>
+                </g>
+            </svg>
+            <p> <b>Color Temperature:</b> {{data_list[4].clr_temp}} </p>
+            <p> <b>Lux:</b> {{data_list[4].lux}} Lux</p>
+        </div>
+        <div class="column">
+            <h3> Second BME </h3>
+            <p> <b>Entry ID:</b> {{data_list[5].id_bme}} </p>
+            <p> <b>Location:</b> {{data_list[5].location_bme}} </p>
+            <p> <b>Temperature:</b> {{data_list[5].temperature}} C</p>
+            <p> <b>Pressure:</b> {{data_list[5].pressure}} hPa</p>
+            <p> <b>Altitude:</b> {{data_list[5].altitude}} m</p>
+            <p> <b>Humidity:</b> {{data_list[5].humidity}} %</p>
+        </div>
+    </div>
+
+    <hr noshade>
+    <div class="row">
+        <div class="column">
+            <h3> Third DHT11 </h3>
+            <p> <b>Entry ID:</b> {{data_list[6].id}} </p>
+            <p> <b>Location:</b> {{data_list[6].location_dht}} </p>
+            <p> <b>Temperature:</b> {{data_list[6].temperature}} C</p>
+            <p> <b>Humidity:</b> {{data_list[6].humidity}}%</p>
+        </div>
+
+        <div class="column">
+            <h3> Third TCS </h3>
+            <p> <b>Entry ID:</b> {{data_list[7].id_tcs}} </p>
+            <p> <b>Location:</b> {{data_list[7].location_tcs}} </p>
+            <p> <b>Red:</b> {{data_list[7].red}} </p>
+            <p> <b>Green:</b> {{data_list[7].green}} </p>
+            <p> <b>Blue:</b> {{data_list[7].blue}} </p>
+            <p> <b>Color Box:</b></p>
+            <svg width="20" height="20" xmlns="http://www.w3.org/2000/svg">
+                <title>box</title>
+                <g id="Color_Box">
+                    <title>Color_Box</title>
+                    <rect id="svg_1" height="20" width="20" y="0" x="0" stroke="#000" fill="rgb({{data_list[7].red}},{{data_list[7].green}},{{data_list[7].blue}})"/>
+                </g>
+            </svg>
+            <p> <b>Color Temperature:</b> {{data_list[7].clr_temp}} </p>
+            <p> <b>Lux:</b> {{data_list[7].lux}} Lux</p>
+        </div>
+        <div class="column">
+            <h3> Third BME </h3>
+            <p> <b>Entry ID:</b> {{data_list[8].id_bme}} </p>
+            <p> <b>Location:</b> {{data_list[8].location_bme}} </p>
+            <p> <b>Temperature:</b> {{data_list[8].temperature}} C</p>
+            <p> <b>Pressure:</b> {{data_list[8].pressure}} hPa</p>
+            <p> <b>Altitude:</b> {{data_list[8].altitude}} m</p>
+            <p> <b>Humidity:</b> {{data_list[8].humidity}} %</p>
+        </div>
+    </div>
+    <hr noshade>
+    <div class="row">
+        <div class="column">
+            <h3> Fourth DHT11 </h3>
+            <p> <b>Entry ID:</b> {{data_list[9].id}} </p>
+            <p> <b>Location:</b> {{data_list[9].location_dht}} </p>
+            <p> <b>Temperature:</b> {{data_list[9].temperature}} C</p>
+            <p> <b>Humidity:</b> {{data_list[9].humidity}}%</p>
+        </div>
+
+        <div class="column">
+            <h3> Fourth TCS </h3>
+            <p> <b>Entry ID:</b> {{data_list[10].id_tcs}} </p>
+            <p> <b>Location:</b> {{data_list[10].location_tcs}} </p>
+            <p> <b>Red:</b> {{data_list[10].red}} </p>
+            <p> <b>Green:</b> {{data_list[10].green}} </p>
+            <p> <b>Blue:</b> {{data_list[10].blue}} </p>
+            <p> <b>Color Box:</b></p>
+            <svg width="20" height="20" xmlns="http://www.w3.org/2000/svg">
+                <title>box</title>
+                <g id="Color_Box">
+                    <title>Color_Box</title>
+                    <rect id="svg_1" height="20" width="20" y="0" x="0" stroke="#000" fill="rgb({{data_list[10].red}},{{data_list[10].green}},{{data_list[10].blue}})"/>
+                </g>
+            </svg>
+            <p> <b>Color Temperature:</b> {{data_list[10].clr_temp}} </p>
+            <p> <b>Lux:</b> {{data_list[10].lux}} Lux</p>
+        </div>
+        <div class="column">
+            <h3> Fourth BME </h3>
+            <p> <b>Entry ID:</b> {{data_list[11].id_bme}} </p>
+            <p> <b>Location:</b> {{data_list[11].location_bme}} </p>
+            <p> <b>Temperature:</b> {{data_list[11].temperature}} C</p>
+            <p> <b>Pressure:</b> {{data_list[11].pressure}} hPa</p>
+            <p> <b>Altitude:</b> {{data_list[11].altitude}} m</p>
+            <p> <b>Humidity:</b> {{data_list[11].humidity}} %</p>
+        </div>
+    </div>
+</div>
+<br>
+<a href="/system_info">System Info Table</a>
+<br>
+<a href="/">Refresh</a>
+<br>
+<br>
+</body>
+</html>
